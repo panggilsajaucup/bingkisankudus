@@ -441,9 +441,9 @@ const LW='data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUA
   <section class="cat-hero"><div class="sh"><div class="st">E-Katalog</div><h2 class="stl">Koleksi <span>Paket Kami</span></h2><p class="sd">Semua paket dapat dikustomisasi sesuai kebutuhan dan budget kamu.</p></div><div class="fw" id="cFlt"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:10px">
       <select id="pSort" onchange="setSort(this.value)" style="padding:8px 12px;border:2px solid var(--pink-mid);border-radius:10px;font-size:.82rem;font-family:'Nunito',sans-serif;color:var(--dark);background:#fff;font-weight:700;cursor:pointer">
+        <option value="default">Urutkan: Terbaru</option>
         <option value="price_desc">Harga: Tertinggi ke Terendah</option>
         <option value="price_asc">Harga: Terendah ke Tertinggi</option>
-        <option value="default">Urutkan: Terbaru</option>
       </select>
     </div>
   </section>
@@ -748,7 +748,7 @@ function rHCats(){
 function rFlt(){const w=document.getElementById('cFlt');if(!w)return;w.innerHTML='<button class="fb'+(curF==='all'?' active':'')+'" onclick="fProds(this,\'all\')">Semua</button>'+cats.map(c=>'<button class="fb'+(curF===c.id?' active':'')+'" onclick="fProds(this,\''+c.id+'\')">'+c.name+'</button>').join('');}
 function fProds(btn,cat){curF=cat;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rProds();}
 function gCF(id){curF=id;gP('catalog');setTimeout(()=>{rFlt();rProds();},80);}
-let curSort='default';
+let curSort='price_desc';
 function setSort(v){curSort=v;rProds();}
 
 function rProds(){
