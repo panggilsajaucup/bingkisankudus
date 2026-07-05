@@ -799,9 +799,8 @@ function oMod(p){
   if(p.image_url){document.getElementById('mI').src=p.image_url;document.getElementById('mI').alt=p.name;document.getElementById('mI').style.display='block';document.getElementById('mPH').style.display='none';}
   else{document.getElementById('mI').style.display='none';document.getElementById('mPH').style.display='flex';}
   const pageUrl=location.origin+location.pathname;
-  let waText='Halo Bingkisan Kudus, Saya ingin menanyakan Paket [Kategori : '+catN+'] ['+p.name+']';
+  let waText='Halo Bingkisan Kudus, Saya ingin menanyakan Paket '+p.name+'';
   waText+='\nLink: '+pageUrl;
-  if(p.image_url)waText+='\nFoto: '+p.image_url;
   document.getElementById('mWA').href='https://wa.me/'+WA+'?text='+encodeURIComponent(waText);
   goTo({page:curNav.page,modal:true,preview:false});
 }
