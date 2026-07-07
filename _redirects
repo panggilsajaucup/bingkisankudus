@@ -1,5 +1,0 @@
-# Netlify redirects - semua URL diarahkan ke index.html (SPA routing)
-# File ini harus diletakkan di root folder yang sama dengan index.html
-/katalog        /index.html     200
-/tentang-kami   /index.html     200
-/kontak         /index.html     200
