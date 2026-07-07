@@ -1,0 +1,6 @@
+# Netlify SPA routing - halaman utama
+/katalog          /index.html   200
+/tentang-kami     /index.html   200
+/kontak           /index.html   200
+# Halaman SEO per kota & keyword (file HTML sungguhan, tidak perlu redirect)
+# Sudah dihandle oleh folder masing-masing dengan index.html di dalamnya

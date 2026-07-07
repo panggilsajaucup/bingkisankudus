@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Halaman Utama -->
+  <url><loc>https://bingkisankudus.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://bingkisankudus.com/katalog</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://bingkisankudus.com/tentang-kami</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://bingkisankudus.com/kontak</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <!-- Halaman Per Kota -->
+  <url><loc>https://bingkisankudus.com/balenan-kudus/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://bingkisankudus.com/balenan-pati/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://bingkisankudus.com/balenan-jepara/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://bingkisankudus.com/balenan-demak/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://bingkisankudus.com/balenan-semarang/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <!-- Halaman Per Keyword Balen -->
+  <url><loc>https://bingkisankudus.com/balen-lahiran/</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://bingkisankudus.com/balen-punya-anak/</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://bingkisankudus.com/balen-pindah-rumah/</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://bingkisankudus.com/balen-haji/</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://bingkisankudus.com/balen-buat-rumah/</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://bingkisankudus.com/balen-uli-ulian/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://bingkisankudus.com/paket-sembako/</loc><changefreq>monthly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://bingkisankudus.com/jual-balenan-kudus/</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://bingkisankudus.com/jual-balen-kudus/</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+</urlset>
