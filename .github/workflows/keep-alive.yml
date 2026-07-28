@@ -16,7 +16,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           # Ganti "your_table" dengan nama tabel yang benar-benar ada di project kamu
-          TABLE_NAME: your_table
+          TABLE_NAME: bk_settings
         run: |
           echo "Pinging Supabase REST API..."
           http_status=$(curl -s -o response.json -w "%{http_code}" \
