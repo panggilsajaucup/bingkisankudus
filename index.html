@@ -781,14 +781,25 @@ let cats=[],prods=[],revs=[],cfg={},curF='all',WA='6212345678901',LAT=null,LNG=n
 // Ganti URL di bawah dengan URL Web App Apps Script hasil deploy (lihat panduan yang diberikan)
 const SHEET_API_URL='https://script.google.com/macros/s/AKfycbwdbsshrtnacRzDu1bkzATNb5LcpGVa2TGwi6RMYR9IAC_FmmxowTihI-RUjb6_7nWLCw/exec';
 let sheetMap={};
-async function lSheet(){
-  if(!SHEET_API_URL||SHEET_API_URL.indexOf('http')!==0){console.warn('SHEET_API_URL belum diisi, sinkronisasi sheet dilewati.');return;}
+const SHEET_CACHE_KEY='bk_sheet_cache_v2';
+function setSheetData(data){
+  sheetMap={};
+  (Array.isArray(data)?data:[]).forEach(it=>{if(it&&it.kd_paket)sheetMap[String(it.kd_paket).trim()]=it;});
+}
+// Pakai data sheet terakhir yang tersimpan di browser supaya katalog langsung tampil
+(function(){try{const c=JSON.parse(localStorage.getItem(SHEET_CACHE_KEY)||'null');if(c&&c.data)setSheetData(c.data);}catch(e){}})();
+async function lSheet(fresh){
+  if(!SHEET_API_URL||SHEET_API_URL.indexOf('http')!==0){console.warn('SHEET_API_URL belum diisi, sinkronisasi sheet dilewati.');return false;}
+  const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),25000);
   try{
-    const res=await fetch(SHEET_API_URL);
+    const res=await fetch(SHEET_API_URL+(fresh?'?nocache=1':''),{signal:ctrl.signal});
     const data=await res.json();
-    sheetMap={};
-    (data||[]).forEach(it=>{if(it&&it.kd_paket)sheetMap[String(it.kd_paket).trim()]=it;});
-  }catch(e){console.error('Gagal memuat data Google Sheets:',e);}
+    if(!Array.isArray(data))throw new Error((data&&data.error)||'Format data sheet tidak dikenali');
+    setSheetData(data);
+    try{localStorage.setItem(SHEET_CACHE_KEY,JSON.stringify({t:Date.now(),data}));}catch(e){}
+    return true;
+  }catch(e){console.error('Gagal memuat data Google Sheets:',e);return false;}
+  finally{clearTimeout(t);}
 }
 let kdSyncTimer=null;
 function applySheet(p){
@@ -797,10 +808,15 @@ function applySheet(p){
     if(s.name)p.name=s.name;
     if(s.price!==null&&s.price!==undefined&&s.price!=='')p.price=s.price;
     if(s.description)p.description=s.description;
-    p.image_url=s.image||null; // foto murni dari spreadsheet, tidak disimpan di supabase
+    p.image_url=s.image||null; // foto murni dari spreadsheet (file Drive publik), tidak disimpan di supabase
+    p.image_alt=s.image_alt||null; // URL cadangan bila URL utama gagal dimuat
   }
   return p;
 }
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// Gambar gagal dimuat: coba URL cadangan dulu, baru disembunyikan
+function imgErr(el){const a=el.getAttribute('data-alt');if(a&&el.src!==a){el.removeAttribute('data-alt');el.src=a;}else{el.style.display='none';}}
+function oModId(id){const p=prods.find(x=>String(x.id)===String(id));if(p)oMod(p);}
 let ePId=null,eCId=null,eRId=null,pPI=null,rPI=null,rPRF=null;
 const ICO={
   hampers:'<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="5" y="16" width="26" height="18" rx="5" fill="none" stroke="#F472B6" stroke-width="2.5"/><path d="M8 16 Q18 3 28 16" fill="none" stroke="#F472B6" stroke-width="2.5"/><path d="M18 9 L18 16" stroke="#F472B6" stroke-width="2.5"/><path d="M11 26 Q13 21 18 23 Q23 21 25 26 Q27 31 18 34 Q9 31 11 26Z" fill="#F472B6" opacity=".85"/></svg>',
@@ -820,10 +836,12 @@ function iLg(){const url=(cfg&&cfg.logo)?cfg.logo:LP;['nLg','fLg','aLg'].forEach
 
 async function init(){
   iLg();
-  await Promise.all([lCats(),lCfg(),lSheet()]);
+  const sheetP=lSheet(); // Apps Script lambat: jangan tahan tampilan katalog
+  await Promise.all([lCats(),lCfg()]);
   iLg();
   await Promise.all([lProds(),lRevs()]);
   rHCats();rFlt();bCSel();rTesti();bindK();
+  if(await sheetP){prods=prods.map(applySheet);rProds();}
 }
 
 async function lCats(){const{data}=await SB.from('bk_categories').select('*').order('sort_order');if(data)cats=data;}
@@ -898,9 +916,8 @@ function rProds(){
     const pct=disc?Math.round((1-p.price/p.original_price)*100):0;
     const catN=p.bk_categories?p.bk_categories.name:'';
     const rawDesc=p.description?p.description.replace(/<[^>]*>/g,' ').substring(0,80)+'…':'';
-    const pd=JSON.stringify(p).replace(/"/g,'&quot;');
-    return '<div class="pc" onclick="oMod('+pd+')">'
-      +'<div class="pi">'+(p.image_url?'<img src="'+p.image_url+'" alt="'+p.name+'" loading="lazy" decoding="async" onerror="this.style.display=\'none\'">':'')
+    return '<div class="pc" onclick="oModId(\''+esc(p.id)+'\')">'
+      +'<div class="pi">'+(p.image_url?'<img src="'+esc(p.image_url)+'" data-alt="'+esc(p.image_alt||'')+'" alt="'+esc(p.name)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="imgErr(this)">':'')
       +(disc?'<div class="bd">-'+pct+'%</div>':'')+'</div>'
       +'<div class="pb"><div class="pcat">'+catN+'</div><div class="pnm">'+p.name+'</div><div class="pdp">'+rawDesc+'</div>'
       +'<div class="ppr">'+(disc?'<span class="po">'+rp(p.original_price)+'</span><span class="pf">'+rp(p.price)+'</span>':'<span class="pn">'+rp(p.price)+'</span>')+'</div>'
@@ -931,7 +948,13 @@ function oMod(p){
   if(disc){document.getElementById('mOr').textContent=rp(p.original_price);document.getElementById('mOr').style.display='inline';document.getElementById('mFn').textContent=rp(p.price);document.getElementById('mBg').textContent='Hemat '+pct+'%';document.getElementById('mBg').style.display='inline-block';}
   else{document.getElementById('mOr').style.display='none';document.getElementById('mFn').textContent=rp(p.price);document.getElementById('mBg').style.display='none';}
   document.getElementById('mDs').innerHTML=p.description||'Paket bingkisan berkualitas dari Bingkisan Kudus.';
-  if(p.image_url){document.getElementById('mI').src=p.image_url;document.getElementById('mI').alt=p.name;document.getElementById('mI').style.display='block';document.getElementById('mPH').style.display='none';}
+  if(p.image_url){
+    const mI=document.getElementById('mI');
+    mI.referrerPolicy='no-referrer';
+    mI.setAttribute('data-alt',p.image_alt||'');
+    mI.onerror=function(){const a=this.getAttribute('data-alt');if(a&&this.src!==a){this.removeAttribute('data-alt');this.src=a;}else{this.style.display='none';document.getElementById('mPH').style.display='flex';}};
+    mI.src=p.image_url;mI.alt=p.name;mI.style.display='block';document.getElementById('mPH').style.display='none';
+  }
   else{document.getElementById('mI').style.display='none';document.getElementById('mPH').style.display='flex';}
   const pageUrl=location.origin+location.pathname;
   let waText='Halo Bingkisan Kudus, Saya ingin menanyakan Paket '+p.name+'';
@@ -1301,7 +1324,7 @@ async function lEP(){
   if(!raw||!raw.length){l.innerHTML='<p style="color:var(--light);padding:20px;text-align:center">Belum ada produk.</p>';return;}
   const data=raw.map(applySheet);
   l.innerHTML=data.map(p=>{
-    const thumb=p.image_url?'<img src="'+p.image_url+'" onerror="this.style.display=\'none\'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="9" width="18" height="13" rx="3" fill="none" stroke="#FBCFE8" stroke-width="1.5"/></svg>':'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="9" width="18" height="13" rx="3" fill="none" stroke="#FBCFE8" stroke-width="1.5"/></svg>';
+    const thumb=p.image_url?'<img src="'+esc(p.image_url)+'" data-alt="'+esc(p.image_alt||'')+'" referrerpolicy="no-referrer" onerror="imgErr(this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="9" width="18" height="13" rx="3" fill="none" stroke="#FBCFE8" stroke-width="1.5"/></svg>':'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="9" width="18" height="13" rx="3" fill="none" stroke="#FBCFE8" stroke-width="1.5"/></svg>';
     const safe=JSON.stringify(p).replace(/"/g,'&quot;');
     const sname=p.name.replace(/'/g,"\\'");
     return '<div class="ed-pi"><div class="ed-th">'+thumb+'</div><div class="ed-if"><div class="ed-pn">'+p.name+'</div><div class="ed-pm">'+(p.bk_categories?p.bk_categories.name:'-')+' · '+rp(p.price)+(p.active?' · ✅':' · ⛔')+(p.kd_paket?' · 🔗'+p.kd_paket:'')+'</div></div><div class="ed-ac"><button class="be" onclick="oPF('+safe+')">Edit</button><button class="bd2" onclick="dProd(\''+p.id+'\',\''+sname+'\')">Hapus</button></div></div>';
@@ -1345,7 +1368,7 @@ async function syncKdPaket(kd,live){
   const prv=document.getElementById('dSheetPrv');
   if(!kd){if(prv)prv.innerHTML='';return;}
   if(prv)prv.innerHTML='<div style="font-size:.72rem;color:var(--light)">Mencari data di spreadsheet…</div>';
-  if(live)await lSheet(); // ambil data terbaru dari sheet
+  if(live)await lSheet(true); // ambil data terbaru dari sheet (lewati cache server)
   const s=sheetMap[String(kd).trim()];
   if(!s){
     if(prv)prv.innerHTML='<div style="font-size:.72rem;color:#EF4444">Kode paket tidak ditemukan di spreadsheet.</div>';
@@ -1356,7 +1379,7 @@ async function syncKdPaket(kd,live){
   cDisc();
   if(prv){
     prv.innerHTML='<div style="font-size:.72rem;color:var(--green-dark);margin-bottom:6px">✅ Data ditemukan di spreadsheet</div>'
-      +(s.image?'<img src="'+s.image+'" style="width:80px;height:80px;object-fit:cover;border-radius:9px;border:2px solid var(--pink-mid)">':'<div style="font-size:.72rem;color:var(--light)">Tidak ada foto di spreadsheet untuk kode ini.</div>');
+      +(s.image?'<img src="'+esc(s.image)+'" data-alt="'+esc(s.image_alt||'')+'" referrerpolicy="no-referrer" onerror="imgErr(this)" style="width:80px;height:80px;object-fit:cover;border-radius:9px;border:2px solid var(--pink-mid)">':'<div style="font-size:.72rem;color:var(--light)">Tidak ada foto di spreadsheet untuk kode ini.</div>');
   }
 }
 function cDisc(){
